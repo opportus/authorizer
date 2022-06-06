@@ -1,0 +1,13 @@
+.idea
+.ideavimrc
+.gradle
+.vscode
+*.code-workspace
+.php_cs.cache
+.phpunit.result.cache
+phpunit*.phar
+composer.lock
+coverage*
+MEMO.md
+vendor
+tags

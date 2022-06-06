@@ -1,0 +1,106 @@
+name: build
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+
+  setup:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 8.1 ]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      id: composer-cache
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php }}-
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+    - run: composer validate
+    - run: composer install --prefer-dist --no-progress --no-suggest
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+
+  test-suite:
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      XDEBUG_MODE: coverage
+    strategy:
+      matrix:
+        php: [ 8.1 ]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      id: composer-cache
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php }}-
+    - run: vendor/bin/phpunit --coverage-text --coverage-clover=${{ github.workspace }}/coverage-${{ matrix.php }}.clover.xml
+    - uses: actions/upload-artifact@v2
+      with:
+        path: coverage-${{ matrix.php }}.clover.xml
+    - uses: codacy/codacy-coverage-reporter-action@v1
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: ${{ github.workspace }}/coverage-${{ matrix.php }}.clover.xml
+
+  code-standards-check:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 8.1 ]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      id: composer-cache
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php }}-
+    - run: vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no .
+
+  code-analysis:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 8.0 ]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      id: composer-cache
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php }}-
+    - uses: codacy/codacy-analysis-cli-action@1.1.0
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        upload: true
+        verbose: true
+        max-allowed-issues: 2147483647
+    - uses: codacy/codacy-analysis-cli-action@1.1.0
+      with:
+        output: results.sarif
+        format: sarif
+        gh-code-scanning-compat: true
+        max-allowed-issues: 2147483647
+    - uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: results.sarif

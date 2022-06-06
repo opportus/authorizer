@@ -1,0 +1,38 @@
+{
+  "name": "opportus/authorizer",
+  "description": "Provides a simple yet powerful authorization system",
+  "type": "library",
+  "keywords": [
+    "authorizer",
+    "authorization",
+    "auth"
+  ],
+  "homepage": "https://github.com/opportus/authorizer",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Clément Cazaud",
+      "email": "clement.cazaud@gmail.com"
+    }
+  ],
+  "classmap": [
+    "src/"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Opportus\\Authorizer\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Opportus\\Authorizer\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": "^8.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+    "friendsofphp/php-cs-fixer": "^2.19"
+  }
+}
