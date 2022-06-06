@@ -15,10 +15,10 @@
       "email": "clement.cazaud@gmail.com"
     }
   ],
-  "classmap": [
-    "src/"
-  ],
   "autoload": {
+    "classmap": [
+      "src/"
+    ],
     "psr-4": {
       "Opportus\\Authorizer\\": "src/"
     }
